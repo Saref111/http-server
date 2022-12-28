@@ -11,6 +11,23 @@ struct Server {
     port: String,
 }
 
+struct Request {
+    path: String,
+    query: Option<String>,
+    method: Method,
+}
+
+enum Method {
+    GET,
+    POST,
+    DELETE,
+    PUT,
+    HEAD,
+    CONNECT,
+    TRACE,
+    PATCH,
+}
+
 impl Server {
     fn new(address: String) -> Self {
         let url: Vec<&str> = address.split(':').collect();
@@ -47,3 +64,9 @@ impl Server {
         println!("Server is listening on {}:{}", self.host, self.port)
     }
 }
+
+/*
+GET /users?id=10 HTTP/1.1\r\n
+HEADERS \r\n
+BODY
+*/
