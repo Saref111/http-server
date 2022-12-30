@@ -1,3 +1,6 @@
+use std::io::Read;
+use std::net::TcpListener;
+
 pub struct Server {
     address: String,
     host: String,
@@ -36,7 +39,24 @@ impl Server {
         }
     }
 
-    pub fn run(&self) {
-        println!("Server is listening on {}:{}", self.host, self.port)
+    pub fn run(self) {
+        let listener = TcpListener::bind(&self.address).unwrap();
+
+        loop {
+            match listener.accept() {
+                Ok((mut stream, _)) => {
+                    let mut buffer = [0u8; 1024];
+
+                    match stream.read(&mut buffer) {
+                        Ok(_) => {
+                            println!("request: {:?}", String::from_utf8_lossy(&buffer))
+                        }
+                        Err(e) => println!("Failed to read {}", e),
+                    }
+                }
+                Err(e) => println!("Failed to connect {}", e),
+            }
+        }
+        // println!("Server is lisening on {}:{}", self.host, self.port)
     }
 }
