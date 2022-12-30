@@ -1,3 +1,6 @@
+use crate::http::Request;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 use std::io::Read;
 use std::net::TcpListener;
 
@@ -11,18 +14,8 @@ impl Server {
     pub fn new(address: String) -> Self {
         let url: Vec<&str> = address.split(':').collect();
 
-        // let semicolons_idx = match address.find(':') {
-        //     Some(val) => val,
-        //     None => 0,
-        // };
-
         let mut host: String = String::from("localhost");
         let mut port: String = String::from("8888");
-
-        // if semicolons_idx > 0 {
-        //     host = address[..semicolons_idx].to_owned();
-        //     port = address[semicolons_idx + 1..].to_owned();
-        // }
 
         for (i, &a) in url.iter().enumerate() {
             match i {
@@ -48,8 +41,15 @@ impl Server {
                     let mut buffer = [0u8; 1024];
 
                     match stream.read(&mut buffer) {
-                        Ok(_) => {
-                            println!("request: {:?}", String::from_utf8_lossy(&buffer))
+                        Ok(s) => {
+                            println!("{s}");
+                            println!("request: {:?}", String::from_utf8_lossy(&buffer));
+                            match Request::try_from(&buffer[..]) {
+                                Ok(request) => {}
+                                Err(err) => {
+                                    println!("Failed to parse the request: {err}")
+                                }
+                            }
                         }
                         Err(e) => println!("Failed to read {}", e),
                     }
@@ -57,6 +57,5 @@ impl Server {
                 Err(e) => println!("Failed to connect {}", e),
             }
         }
-        // println!("Server is lisening on {}:{}", self.host, self.port)
     }
 }
