@@ -25,15 +25,27 @@ impl TryFrom<&[u8]> for Request {
         //     Ok(request) => {}
         //     Err(_) => return Err(ParseError::InvalidEncoding),
         // }
-
         let request = from_utf8(buf)?;
+
+        // match get_next_word(request) {
+        //     Some((m, rest_request)) => {}
+        //     None => return Err(ParseError::InvalidRequest),
+        // }
+        let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+
+        if protocol != "HTTP/1.1" {
+            return Err(ParseError::InvalidProtocol);
+        }
+
         unimplemented!()
     }
 }
 
 fn get_next_word(req: &str) -> Option<(&str, &str)> {
     for (i, c) in req.chars().enumerate() {
-        if c == ' ' {
+        if c == ' ' || c == '\r' {
             return Some((&req[..i], &req[i + 1..]));
         }
     }
