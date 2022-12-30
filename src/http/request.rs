@@ -1,9 +1,9 @@
 use super::method::Method;
 use ::std::error::Error;
-use std::fmt::{Formatter, Result as FmtResult};
 use std::{
     convert::TryFrom,
-    fmt::{Debug, Display},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    str::{from_utf8, Utf8Error},
 };
 
 pub struct Request {
@@ -27,6 +27,12 @@ impl TryFrom<&[u8]> for Request {
     BODY
     */
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+        // match from_utf8(buf) {
+        //     Ok(request) => {}
+        //     Err(_) => return Err(ParseError::InvalidEncoding),
+        // }
+
+        let request = from_utf8(buf)?;
         unimplemented!()
     }
 }
@@ -46,6 +52,12 @@ impl ParseError {
             Self::InvalidProtocol => "Invalid protocol",
             Self::InvalidRequest => "Invalid request",
         }
+    }
+}
+
+impl From<Utf8Error> for ParseError {
+    fn from(_: Utf8Error) -> Self {
+        ParseError::InvalidEncoding
     }
 }
 
