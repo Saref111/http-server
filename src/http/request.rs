@@ -6,13 +6,13 @@ use std::{
     str::{from_utf8, Utf8Error},
 };
 
-pub struct Request {
-    path: String,
-    query: Option<String>,
+pub struct Request<'buf> {
+    path: &'buf str,
+    query_string: Option<&'buf str>,
     method: Method,
 }
 
-impl TryFrom<&[u8]> for Request {
+impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseError;
 
     /*
@@ -20,7 +20,7 @@ impl TryFrom<&[u8]> for Request {
     HEADERS \r\n
     BODY
     */
-    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(buf: &'buf [u8]) -> Result<Request<'buf>, Self::Error> {
         // match from_utf8(buf) {
         //     Ok(request) => {}
         //     Err(_) => return Err(ParseError::InvalidEncoding),
@@ -32,7 +32,7 @@ impl TryFrom<&[u8]> for Request {
         //     None => return Err(ParseError::InvalidRequest),
         // }
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
-        let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
 
         if protocol != "HTTP/1.1" {
@@ -41,7 +41,25 @@ impl TryFrom<&[u8]> for Request {
 
         let method = method.parse::<Method>()?;
 
-        unimplemented!()
+        let mut query_string = None;
+        // match path.find('?') {
+        //     Some(i) => {
+        //         query_string = Some(&path[i + 1..]);
+        //         path = &path[i..];
+        //     }
+        //     None => {}
+        // }
+
+        if let Some(i) = path.find('?') {
+            query_string = Some(&path[i + 1..]);
+            path = &path[i..];
+        }
+
+        Ok(Self {
+            path,
+            query_string,
+            method,
+        })
     }
 }
 
