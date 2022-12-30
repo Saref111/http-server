@@ -1,4 +1,4 @@
-use super::method::Method;
+use super::method::{Method, MethodError};
 use ::std::error::Error;
 use std::{
     convert::TryFrom,
@@ -39,6 +39,8 @@ impl TryFrom<&[u8]> for Request {
             return Err(ParseError::InvalidProtocol);
         }
 
+        let method = method.parse::<Method>()?;
+
         unimplemented!()
     }
 }
@@ -70,9 +72,15 @@ impl ParseError {
     }
 }
 
+impl From<MethodError> for ParseError {
+    fn from(_: MethodError) -> Self {
+        Self::InvalidMethod
+    }
+}
+
 impl From<Utf8Error> for ParseError {
     fn from(_: Utf8Error) -> Self {
-        ParseError::InvalidEncoding
+        Self::InvalidEncoding
     }
 }
 
