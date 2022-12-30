@@ -12,12 +12,6 @@ pub struct Request {
     method: Method,
 }
 
-impl Request {
-    fn from_byte_array(buf: &[u8]) -> Result<Self, String> {
-        unimplemented!()
-    }
-}
-
 impl TryFrom<&[u8]> for Request {
     type Error = ParseError;
 
@@ -35,6 +29,15 @@ impl TryFrom<&[u8]> for Request {
         let request = from_utf8(buf)?;
         unimplemented!()
     }
+}
+
+fn get_next_word(req: &str) -> Option<(&str, &str)> {
+    for (i, c) in req.chars().enumerate() {
+        if c == ' ' {
+            return Some((&req[..i], &req[i + 1..]));
+        }
+    }
+    None
 }
 
 pub enum ParseError {
